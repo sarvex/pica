@@ -356,10 +356,9 @@ class UciPacket(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['UciPacket', bytes]:
-        fields = {'payload': None}
         if len(span) < 4:
             raise Exception('Invalid packet size')
-        fields['group_id'] = GroupId((span[0] >> 0) & 0xf)
+        fields = {'payload': None, 'group_id': GroupId((span[0] >> 0) & 0xf)}
         fields['packet_boundary_flag'] = PacketBoundaryFlag(
             (span[0] >> 4) & 0x1)
         fields['message_type'] = MessageType((span[0] >> 5) & 0x7)
@@ -519,7 +518,7 @@ class UciCommand(UciPacket):
         elif fields['group_id'] == GroupId.VENDOR_ANDROID and fields['opcode'] == 0x1:
             return AndroidSetCountryCodeCmd.parse(fields, payload)
         else:
-            return UciCommand(**fields), span
+            return UciCommand(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -577,7 +576,7 @@ class UciResponse(UciPacket):
         elif fields['group_id'] == GroupId.VENDOR_ANDROID and fields['opcode'] == 0x1:
             return AndroidSetCountryCodeRsp.parse(fields, payload)
         else:
-            return UciResponse(**fields), span
+            return UciResponse(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -601,7 +600,7 @@ class UciNotification(UciPacket):
         elif fields['group_id'] == GroupId.RANGING_SESSION_CONTROL and fields['opcode'] == 0x0:
             return RangeDataNtf.parse(fields, payload)
         else:
-            return UciNotification(**fields), span
+            return UciNotification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -625,7 +624,7 @@ class CoreCommand(UciCommand):
         elif fields['opcode'] == 0x5:
             return GetConfigCmd.parse(fields, payload)
         else:
-            return CoreCommand(**fields), span
+            return CoreCommand(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -649,7 +648,7 @@ class CoreResponse(UciResponse):
         elif fields['opcode'] == 0x5:
             return GetConfigRsp.parse(fields, payload)
         else:
-            return CoreResponse(**fields), span
+            return CoreResponse(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -667,7 +666,7 @@ class CoreNotification(UciNotification):
         elif fields['opcode'] == 0x7:
             return GenericError.parse(fields, payload)
         else:
-            return CoreNotification(**fields), span
+            return CoreNotification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -695,7 +694,7 @@ class SessionCommand(UciCommand):
         elif fields['opcode'] == 0x7:
             return SessionUpdateControllerMulticastListCmd.parse(fields, payload)
         else:
-            return SessionCommand(**fields), span
+            return SessionCommand(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -723,7 +722,7 @@ class SessionResponse(UciResponse):
         elif fields['opcode'] == 0x7:
             return SessionUpdateControllerMulticastListRsp.parse(fields, payload)
         else:
-            return SessionResponse(**fields), span
+            return SessionResponse(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -741,7 +740,7 @@ class SessionNotification(UciNotification):
         elif fields['opcode'] == 0x7:
             return SessionUpdateControllerMulticastListNtf.parse(fields, payload)
         else:
-            return SessionNotification(**fields), span
+            return SessionNotification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -755,7 +754,7 @@ class RangingCommand(UciCommand):
     def parse(fields: dict, span: bytes) -> Tuple['RangingCommand', bytes]:
         if len(span) < 4:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         span = span[4:]
         payload = span
@@ -767,7 +766,7 @@ class RangingCommand(UciCommand):
         elif fields['opcode'] == 0x3:
             return RangeGetRangingCountCmd.parse(fields, payload)
         else:
-            return RangingCommand(**fields), span
+            return RangingCommand(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -787,7 +786,7 @@ class RangingResponse(UciResponse):
         elif fields['opcode'] == 0x3:
             return RangeGetRangingCountRsp.parse(fields, payload)
         else:
-            return RangingResponse(**fields), span
+            return RangingResponse(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -803,7 +802,7 @@ class RangingNotification(UciNotification):
         if fields['opcode'] == 0x0:
             return RangeDataNtf.parse(fields, payload)
         else:
-            return RangingNotification(**fields), span
+            return RangingNotification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -827,7 +826,7 @@ class PicaCommand(UciCommand):
         elif fields['opcode'] == 0x4:
             return PicaDestroyBeaconCmd.parse(fields, payload)
         else:
-            return PicaCommand(**fields), span
+            return PicaCommand(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -851,7 +850,7 @@ class PicaResponse(UciResponse):
         elif fields['opcode'] == 0x4:
             return PicaDestroyBeaconRsp.parse(fields, payload)
         else:
-            return PicaResponse(**fields), span
+            return PicaResponse(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -869,7 +868,7 @@ class AndroidCommand(UciCommand):
         elif fields['opcode'] == 0x1:
             return AndroidSetCountryCodeCmd.parse(fields, payload)
         else:
-            return AndroidCommand(**fields), span
+            return AndroidCommand(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -887,7 +886,7 @@ class AndroidResponse(UciResponse):
         elif fields['opcode'] == 0x1:
             return AndroidSetCountryCodeRsp.parse(fields, payload)
         else:
-            return AndroidResponse(**fields), span
+            return AndroidResponse(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -900,7 +899,7 @@ class AndroidNotification(UciNotification):
     def parse(fields: dict, span: bytes) -> Tuple['AndroidNotification', bytes]:
         payload = span
         fields['payload'] = payload
-        return AndroidNotification(**fields), span
+        return AndroidNotification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -912,7 +911,7 @@ class DeviceResetCmd(CoreCommand):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['DeviceResetCmd', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['reset_config'] = ResetConfig(span[0])
         span = span[1:]
@@ -928,7 +927,7 @@ class DeviceResetRsp(CoreResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['DeviceResetRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -944,7 +943,7 @@ class DeviceStatusNtf(CoreNotification):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['DeviceStatusNtf', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['device_state'] = DeviceState(span[0])
         span = span[1:]
@@ -991,10 +990,10 @@ class GetDeviceInfoRsp(CoreResponse):
         span = span[10:]
         if len(span) < vendor_spec_info_count:
             raise Exception('Invalid packet size')
-        vendor_spec_info = []
-        for n in range(vendor_spec_info_count):
-            vendor_spec_info.append(int.from_bytes(
-                span[n:n + 1], byteorder='little'))
+        vendor_spec_info = [
+            int.from_bytes(span[n : n + 1], byteorder='little')
+            for n in range(vendor_spec_info_count)
+        ]
         fields['vendor_spec_info'] = vendor_spec_info
         span = span[vendor_spec_info_count:]
         return GetDeviceInfoRsp(**fields), span
@@ -1021,17 +1020,14 @@ class CapTlv(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['CapTlv', bytes]:
-        fields = {'payload': None}
         if len(span) < 2:
             raise Exception('Invalid packet size')
-        fields['t'] = CapTlvType(span[0])
+        fields = {'payload': None, 't': CapTlvType(span[0])}
         v_count = span[1]
         span = span[2:]
         if len(span) < v_count:
             raise Exception('Invalid packet size')
-        v = []
-        for n in range(v_count):
-            v.append(int.from_bytes(span[n:n + 1], byteorder='little'))
+        v = [int.from_bytes(span[n:n + 1], byteorder='little') for n in range(v_count)]
         fields['v'] = v
         span = span[v_count:]
         return CapTlv(**fields), span
@@ -1053,7 +1049,7 @@ class GetCapsInfoRsp(CoreResponse):
         tlvs_count = span[1]
         span = span[2:]
         tlvs = []
-        for n in range(tlvs_count):
+        for _ in range(tlvs_count):
             element, span = CapTlv.parse(span)
             tlvs.append(element)
         fields['tlvs'] = tlvs
@@ -1070,17 +1066,17 @@ class DeviceParameter(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['DeviceParameter', bytes]:
-        fields = {'payload': None}
         if len(span) < 2:
             raise Exception('Invalid packet size')
-        fields['id'] = span[0]
+        fields = {'payload': None, 'id': span[0]}
         value_count = span[1]
         span = span[2:]
         if len(span) < value_count:
             raise Exception('Invalid packet size')
-        value = []
-        for n in range(value_count):
-            value.append(int.from_bytes(span[n:n + 1], byteorder='little'))
+        value = [
+            int.from_bytes(span[n : n + 1], byteorder='little')
+            for n in range(value_count)
+        ]
         fields['value'] = value
         span = span[value_count:]
         return DeviceParameter(**fields), span
@@ -1095,12 +1091,12 @@ class SetConfigCmd(CoreCommand):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['SetConfigCmd', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         parameters_count = span[0]
         span = span[1:]
         parameters = []
-        for n in range(parameters_count):
+        for _ in range(parameters_count):
             element, span = DeviceParameter.parse(span)
             parameters.append(element)
         fields['parameters'] = parameters
@@ -1117,11 +1113,13 @@ class DeviceConfigStatus(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['DeviceConfigStatus', bytes]:
-        fields = {'payload': None}
         if len(span) < 2:
             raise Exception('Invalid packet size')
-        fields['parameter_id'] = span[0]
-        fields['status'] = StatusCode(span[1])
+        fields = {
+            'payload': None,
+            'parameter_id': span[0],
+            'status': StatusCode(span[1]),
+        }
         span = span[2:]
         return DeviceConfigStatus(**fields), span
 
@@ -1143,10 +1141,10 @@ class SetConfigRsp(CoreResponse):
         span = span[2:]
         if len(span) < parameters_count * 2:
             raise Exception('Invalid packet size')
-        parameters = []
-        for n in range(parameters_count):
-            parameters.append(DeviceConfigStatus.parse_all(
-                span[n * 2:(n + 1) * 2]))
+        parameters = [
+            DeviceConfigStatus.parse_all(span[n * 2 : (n + 1) * 2])
+            for n in range(parameters_count)
+        ]
         fields['parameters'] = parameters
         span = span[parameters_count * 2:]
         return SetConfigRsp(**fields), span
@@ -1161,16 +1159,16 @@ class GetConfigCmd(CoreCommand):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['GetConfigCmd', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         parameter_ids_count = span[0]
         span = span[1:]
         if len(span) < parameter_ids_count:
             raise Exception('Invalid packet size')
-        parameter_ids = []
-        for n in range(parameter_ids_count):
-            parameter_ids.append(int.from_bytes(
-                span[n:n + 1], byteorder='little'))
+        parameter_ids = [
+            int.from_bytes(span[n : n + 1], byteorder='little')
+            for n in range(parameter_ids_count)
+        ]
         fields['parameter_ids'] = parameter_ids
         span = span[parameter_ids_count:]
         return GetConfigCmd(**fields), span
@@ -1192,7 +1190,7 @@ class GetConfigRsp(CoreResponse):
         parameters_count = span[1]
         span = span[2:]
         parameters = []
-        for n in range(parameters_count):
+        for _ in range(parameters_count):
             element, span = DeviceParameter.parse(span)
             parameters.append(element)
         fields['parameters'] = parameters
@@ -1208,7 +1206,7 @@ class GenericError(CoreNotification):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['GenericError', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -1227,7 +1225,7 @@ class SessionInitCmd(SessionCommand):
     def parse(fields: dict, span: bytes) -> Tuple['SessionInitCmd', bytes]:
         if len(span) < 5:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         fields['session_type'] = SessionType(span[4])
         span = span[5:]
@@ -1243,7 +1241,7 @@ class SessionInitRsp(SessionResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['SessionInitRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -1261,7 +1259,7 @@ class SessionDeinitCmd(SessionCommand):
     def parse(fields: dict, span: bytes) -> Tuple['SessionDeinitCmd', bytes]:
         if len(span) < 4:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         span = span[4:]
         return SessionDeinitCmd(**fields), span
@@ -1276,7 +1274,7 @@ class SessionDeinitRsp(SessionResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['SessionDeinitRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -1296,7 +1294,7 @@ class SessionStatusNtf(SessionNotification):
     def parse(fields: dict, span: bytes) -> Tuple['SessionStatusNtf', bytes]:
         if len(span) < 6:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         fields['session_state'] = SessionState(span[4])
         fields['reason_code'] = ReasonCode(span[5])
@@ -1314,17 +1312,17 @@ class AppConfigParameter(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['AppConfigParameter', bytes]:
-        fields = {'payload': None}
         if len(span) < 2:
             raise Exception('Invalid packet size')
-        fields['id'] = span[0]
+        fields = {'payload': None, 'id': span[0]}
         value_count = span[1]
         span = span[2:]
         if len(span) < value_count:
             raise Exception('Invalid packet size')
-        value = []
-        for n in range(value_count):
-            value.append(int.from_bytes(span[n:n + 1], byteorder='little'))
+        value = [
+            int.from_bytes(span[n : n + 1], byteorder='little')
+            for n in range(value_count)
+        ]
         fields['value'] = value
         span = span[value_count:]
         return AppConfigParameter(**fields), span
@@ -1342,12 +1340,12 @@ class SessionSetAppConfigCmd(SessionCommand):
     def parse(fields: dict, span: bytes) -> Tuple['SessionSetAppConfigCmd', bytes]:
         if len(span) < 5:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         parameters_count = span[4]
         span = span[5:]
         parameters = []
-        for n in range(parameters_count):
+        for _ in range(parameters_count):
             element, span = AppConfigParameter.parse(span)
             parameters.append(element)
         fields['parameters'] = parameters
@@ -1364,11 +1362,9 @@ class AppConfigStatus(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['AppConfigStatus', bytes]:
-        fields = {'payload': None}
         if len(span) < 2:
             raise Exception('Invalid packet size')
-        fields['config_id'] = span[0]
-        fields['status'] = StatusCode(span[1])
+        fields = {'payload': None, 'config_id': span[0], 'status': StatusCode(span[1])}
         span = span[2:]
         return AppConfigStatus(**fields), span
 
@@ -1390,10 +1386,10 @@ class SessionSetAppConfigRsp(SessionResponse):
         span = span[2:]
         if len(span) < parameters_count * 2:
             raise Exception('Invalid packet size')
-        parameters = []
-        for n in range(parameters_count):
-            parameters.append(AppConfigStatus.parse_all(
-                span[n * 2:(n + 1) * 2]))
+        parameters = [
+            AppConfigStatus.parse_all(span[n * 2 : (n + 1) * 2])
+            for n in range(parameters_count)
+        ]
         fields['parameters'] = parameters
         span = span[parameters_count * 2:]
         return SessionSetAppConfigRsp(**fields), span
@@ -1411,16 +1407,16 @@ class SessionGetAppConfigCmd(SessionCommand):
     def parse(fields: dict, span: bytes) -> Tuple['SessionGetAppConfigCmd', bytes]:
         if len(span) < 5:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         parameters_count = span[4]
         span = span[5:]
         if len(span) < parameters_count:
             raise Exception('Invalid packet size')
-        parameters = []
-        for n in range(parameters_count):
-            parameters.append(int.from_bytes(
-                span[n:n + 1], byteorder='little'))
+        parameters = [
+            int.from_bytes(span[n : n + 1], byteorder='little')
+            for n in range(parameters_count)
+        ]
         fields['parameters'] = parameters
         span = span[parameters_count:]
         return SessionGetAppConfigCmd(**fields), span
@@ -1442,7 +1438,7 @@ class SessionGetAppConfigRsp(SessionResponse):
         parameters_count = span[1]
         span = span[2:]
         parameters = []
-        for n in range(parameters_count):
+        for _ in range(parameters_count):
             element, span = AppConfigParameter.parse(span)
             parameters.append(element)
         fields['parameters'] = parameters
@@ -1489,7 +1485,7 @@ class SessionGetStateCmd(SessionCommand):
     def parse(fields: dict, span: bytes) -> Tuple['SessionGetStateCmd', bytes]:
         if len(span) < 4:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         span = span[4:]
         return SessionGetStateCmd(**fields), span
@@ -1523,11 +1519,10 @@ class Controlee(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['Controlee', bytes]:
-        fields = {'payload': None}
         if len(span) < 6:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:2], byteorder='little')
-        fields['short_address'] = value_
+        value_ = int.from_bytes(span[:2], byteorder='little')
+        fields = {'payload': None, 'short_address': value_}
         value_ = int.from_bytes(span[2:6], byteorder='little')
         fields['subsession_id'] = value_
         span = span[6:]
@@ -1547,16 +1542,17 @@ class SessionUpdateControllerMulticastListCmd(SessionCommand):
     def parse(fields: dict, span: bytes) -> Tuple['SessionUpdateControllerMulticastListCmd', bytes]:
         if len(span) < 6:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         fields['action'] = span[4]
         controlees_count = span[5]
         span = span[6:]
         if len(span) < controlees_count * 6:
             raise Exception('Invalid packet size')
-        controlees = []
-        for n in range(controlees_count):
-            controlees.append(Controlee.parse_all(span[n * 6:(n + 1) * 6]))
+        controlees = [
+            Controlee.parse_all(span[n * 6 : (n + 1) * 6])
+            for n in range(controlees_count)
+        ]
         fields['controlees'] = controlees
         span = span[controlees_count * 6:]
         return SessionUpdateControllerMulticastListCmd(**fields), span
@@ -1571,7 +1567,7 @@ class SessionUpdateControllerMulticastListRsp(SessionResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['SessionUpdateControllerMulticastListRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -1589,11 +1585,10 @@ class ControleeStatus(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['ControleeStatus', bytes]:
-        fields = {'payload': None}
         if len(span) < 7:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:2], byteorder='little')
-        fields['mac_address'] = value_
+        value_ = int.from_bytes(span[:2], byteorder='little')
+        fields = {'payload': None, 'mac_address': value_}
         value_ = int.from_bytes(span[2:6], byteorder='little')
         fields['subsession_id'] = value_
         fields['status'] = span[6]
@@ -1614,17 +1609,17 @@ class SessionUpdateControllerMulticastListNtf(SessionNotification):
     def parse(fields: dict, span: bytes) -> Tuple['SessionUpdateControllerMulticastListNtf', bytes]:
         if len(span) < 6:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['session_id'] = value_
         fields['remaining_multicast_list_size'] = span[4]
         controlee_status_count = span[5]
         span = span[6:]
         if len(span) < controlee_status_count * 7:
             raise Exception('Invalid packet size')
-        controlee_status = []
-        for n in range(controlee_status_count):
-            controlee_status.append(
-                ControleeStatus.parse_all(span[n * 7:(n + 1) * 7]))
+        controlee_status = [
+            ControleeStatus.parse_all(span[n * 7 : (n + 1) * 7])
+            for n in range(controlee_status_count)
+        ]
         fields['controlee_status'] = controlee_status
         span = span[controlee_status_count * 7:]
         return SessionUpdateControllerMulticastListNtf(**fields), span
@@ -1650,7 +1645,7 @@ class RangeStartRsp(RangingResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['RangeStartRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -1678,12 +1673,14 @@ class ShortAddressTwoWayRangingMeasurement(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['ShortAddressTwoWayRangingMeasurement', bytes]:
-        fields = {'payload': None}
         if len(span) < 31:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:2], byteorder='little')
-        fields['mac_address'] = value_
-        fields['status'] = StatusCode(span[2])
+        value_ = int.from_bytes(span[:2], byteorder='little')
+        fields = {
+            'payload': None,
+            'mac_address': value_,
+            'status': StatusCode(span[2]),
+        }
         fields['nlos'] = span[3]
         value_ = int.from_bytes(span[4:6], byteorder='little')
         fields['distance'] = value_
@@ -1726,12 +1723,14 @@ class ExtendedAddressTwoWayRangingMeasurement(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['ExtendedAddressTwoWayRangingMeasurement', bytes]:
-        fields = {'payload': None}
         if len(span) < 31:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:8], byteorder='little')
-        fields['mac_address'] = value_
-        fields['status'] = StatusCode(span[8])
+        value_ = int.from_bytes(span[:8], byteorder='little')
+        fields = {
+            'payload': None,
+            'mac_address': value_,
+            'status': StatusCode(span[8]),
+        }
         fields['nlos'] = span[9]
         value_ = int.from_bytes(span[10:12], byteorder='little')
         fields['distance'] = value_
@@ -1774,7 +1773,7 @@ class RangeDataNtf(RangingNotification):
     def parse(fields: dict, span: bytes) -> Tuple['RangeDataNtf', bytes]:
         if len(span) < 24:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:4], byteorder='little')
+        value_ = int.from_bytes(span[:4], byteorder='little')
         fields['sequence_number'] = value_
         value_ = int.from_bytes(span[4:8], byteorder='little')
         fields['session_id'] = value_
@@ -1792,7 +1791,7 @@ class RangeDataNtf(RangingNotification):
         elif fields['ranging_measurement_type'] == RangingMeasurementType.TWO_WAY and fields['mac_address_indicator'] == MacAddressIndicator.EXTENDED_ADDRESS:
             return ExtendedMacTwoWayRangeDataNtf.parse(fields, payload)
         else:
-            return RangeDataNtf(**fields), span
+            return RangeDataNtf(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -1804,16 +1803,18 @@ class ShortMacTwoWayRangeDataNtf(RangeDataNtf):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['ShortMacTwoWayRangeDataNtf', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         two_way_ranging_measurements_count = span[0]
         span = span[1:]
         if len(span) < two_way_ranging_measurements_count * 31:
             raise Exception('Invalid packet size')
-        two_way_ranging_measurements = []
-        for n in range(two_way_ranging_measurements_count):
-            two_way_ranging_measurements.append(
-                ShortAddressTwoWayRangingMeasurement.parse_all(span[n * 31:(n + 1) * 31]))
+        two_way_ranging_measurements = [
+            ShortAddressTwoWayRangingMeasurement.parse_all(
+                span[n * 31 : (n + 1) * 31]
+            )
+            for n in range(two_way_ranging_measurements_count)
+        ]
         fields['two_way_ranging_measurements'] = two_way_ranging_measurements
         span = span[two_way_ranging_measurements_count * 31:]
         return ShortMacTwoWayRangeDataNtf(**fields), span
@@ -1828,16 +1829,18 @@ class ExtendedMacTwoWayRangeDataNtf(RangeDataNtf):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['ExtendedMacTwoWayRangeDataNtf', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         two_way_ranging_measurements_count = span[0]
         span = span[1:]
         if len(span) < two_way_ranging_measurements_count * 31:
             raise Exception('Invalid packet size')
-        two_way_ranging_measurements = []
-        for n in range(two_way_ranging_measurements_count):
-            two_way_ranging_measurements.append(
-                ExtendedAddressTwoWayRangingMeasurement.parse_all(span[n * 31:(n + 1) * 31]))
+        two_way_ranging_measurements = [
+            ExtendedAddressTwoWayRangingMeasurement.parse_all(
+                span[n * 31 : (n + 1) * 31]
+            )
+            for n in range(two_way_ranging_measurements_count)
+        ]
         fields['two_way_ranging_measurements'] = two_way_ranging_measurements
         span = span[two_way_ranging_measurements_count * 31:]
         return ExtendedMacTwoWayRangeDataNtf(**fields), span
@@ -1863,7 +1866,7 @@ class RangeStopRsp(RangingResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['RangeStopRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -1914,11 +1917,10 @@ class PicaPosition(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['PicaPosition', bytes]:
-        fields = {'payload': None}
         if len(span) < 11:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:2], byteorder='little')
-        fields['x'] = value_
+        value_ = int.from_bytes(span[:2], byteorder='little')
+        fields = {'payload': None, 'x': value_}
         value_ = int.from_bytes(span[2:4], byteorder='little')
         fields['y'] = value_
         value_ = int.from_bytes(span[4:6], byteorder='little')
@@ -1944,7 +1946,7 @@ class PicaInitDeviceCmd(PicaCommand):
     def parse(fields: dict, span: bytes) -> Tuple['PicaInitDeviceCmd', bytes]:
         if len(span) < 19:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:8], byteorder='little')
+        value_ = int.from_bytes(span[:8], byteorder='little')
         fields['mac_address'] = value_
         fields['position'] = PicaPosition.parse_all(span[8:19])
         span = span[19:]
@@ -1960,7 +1962,7 @@ class PicaInitDeviceRsp(PicaResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['PicaInitDeviceRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -1978,7 +1980,7 @@ class PicaSetDevicePositionCmd(PicaCommand):
     def parse(fields: dict, span: bytes) -> Tuple['PicaSetDevicePositionCmd', bytes]:
         if len(span) < 11:
             raise Exception('Invalid packet size')
-        fields['position'] = PicaPosition.parse_all(span[0:11])
+        fields['position'] = PicaPosition.parse_all(span[:11])
         span = span[11:]
         return PicaSetDevicePositionCmd(**fields), span
 
@@ -1992,7 +1994,7 @@ class PicaSetDevicePositionRsp(PicaResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['PicaSetDevicePositionRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -2011,7 +2013,7 @@ class PicaCreateBeaconCmd(PicaCommand):
     def parse(fields: dict, span: bytes) -> Tuple['PicaCreateBeaconCmd', bytes]:
         if len(span) < 19:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:8], byteorder='little')
+        value_ = int.from_bytes(span[:8], byteorder='little')
         fields['mac_address'] = value_
         fields['position'] = PicaPosition.parse_all(span[8:19])
         span = span[19:]
@@ -2027,7 +2029,7 @@ class PicaCreateBeaconRsp(PicaResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['PicaCreateBeaconRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -2046,7 +2048,7 @@ class PicaSetBeaconPositionCmd(PicaCommand):
     def parse(fields: dict, span: bytes) -> Tuple['PicaSetBeaconPositionCmd', bytes]:
         if len(span) < 19:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:8], byteorder='little')
+        value_ = int.from_bytes(span[:8], byteorder='little')
         fields['mac_address'] = value_
         fields['position'] = PicaPosition.parse_all(span[8:19])
         span = span[19:]
@@ -2062,7 +2064,7 @@ class PicaSetBeaconPositionRsp(PicaResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['PicaSetBeaconPositionRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -2080,7 +2082,7 @@ class PicaDestroyBeaconCmd(PicaCommand):
     def parse(fields: dict, span: bytes) -> Tuple['PicaDestroyBeaconCmd', bytes]:
         if len(span) < 8:
             raise Exception('Invalid packet size')
-        value_ = int.from_bytes(span[0:8], byteorder='little')
+        value_ = int.from_bytes(span[:8], byteorder='little')
         fields['mac_address'] = value_
         span = span[8:]
         return PicaDestroyBeaconCmd(**fields), span
@@ -2095,7 +2097,7 @@ class PicaDestroyBeaconRsp(PicaResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['PicaDestroyBeaconRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -2126,10 +2128,9 @@ class PowerStats(Packet):
 
     @staticmethod
     def parse(span: bytes) -> Tuple['PowerStats', bytes]:
-        fields = {'payload': None}
         if len(span) < 17:
             raise Exception('Invalid packet size')
-        fields['status'] = StatusCode(span[0])
+        fields = {'payload': None, 'status': StatusCode(span[0])}
         value_ = int.from_bytes(span[1:5], byteorder='little')
         fields['idle_time_ms'] = value_
         value_ = int.from_bytes(span[5:9], byteorder='little')
@@ -2153,7 +2154,7 @@ class AndroidGetPowerStatsRsp(AndroidResponse):
     def parse(fields: dict, span: bytes) -> Tuple['AndroidGetPowerStatsRsp', bytes]:
         if len(span) < 17:
             raise Exception('Invalid packet size')
-        fields['stats'] = PowerStats.parse_all(span[0:17])
+        fields['stats'] = PowerStats.parse_all(span[:17])
         span = span[17:]
         return AndroidGetPowerStatsRsp(**fields), span
 
@@ -2169,10 +2170,9 @@ class AndroidSetCountryCodeCmd(AndroidCommand):
     def parse(fields: dict, span: bytes) -> Tuple['AndroidSetCountryCodeCmd', bytes]:
         if len(span) < 2:
             raise Exception('Invalid packet size')
-        country_code = []
-        for n in range(2):
-            country_code.append(int.from_bytes(
-                span[n:n + 1], byteorder='little'))
+        country_code = [
+            int.from_bytes(span[n : n + 1], byteorder='little') for n in range(2)
+        ]
         fields['country_code'] = country_code
         span = span[2:]
         return AndroidSetCountryCodeCmd(**fields), span
@@ -2187,7 +2187,7 @@ class AndroidSetCountryCodeRsp(AndroidResponse):
 
     @staticmethod
     def parse(fields: dict, span: bytes) -> Tuple['AndroidSetCountryCodeRsp', bytes]:
-        if len(span) < 1:
+        if not span:
             raise Exception('Invalid packet size')
         fields['status'] = StatusCode(span[0])
         span = span[1:]
@@ -2204,7 +2204,7 @@ class UciVendor_A_Command(UciCommand):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_A_Command', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_A_Command(**fields), span
+        return UciVendor_A_Command(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2217,7 +2217,7 @@ class UciVendor_B_Command(UciCommand):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_B_Command', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_B_Command(**fields), span
+        return UciVendor_B_Command(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2230,7 +2230,7 @@ class UciVendor_E_Command(UciCommand):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_E_Command', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_E_Command(**fields), span
+        return UciVendor_E_Command(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2243,7 +2243,7 @@ class UciVendor_F_Command(UciCommand):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_F_Command', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_F_Command(**fields), span
+        return UciVendor_F_Command(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2256,7 +2256,7 @@ class UciVendor_A_Response(UciResponse):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_A_Response', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_A_Response(**fields), span
+        return UciVendor_A_Response(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2269,7 +2269,7 @@ class UciVendor_B_Response(UciResponse):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_B_Response', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_B_Response(**fields), span
+        return UciVendor_B_Response(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2282,7 +2282,7 @@ class UciVendor_E_Response(UciResponse):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_E_Response', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_E_Response(**fields), span
+        return UciVendor_E_Response(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2295,7 +2295,7 @@ class UciVendor_F_Response(UciResponse):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_F_Response', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_F_Response(**fields), span
+        return UciVendor_F_Response(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2308,7 +2308,7 @@ class UciVendor_A_Notification(UciNotification):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_A_Notification', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_A_Notification(**fields), span
+        return UciVendor_A_Notification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2321,7 +2321,7 @@ class UciVendor_B_Notification(UciNotification):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_B_Notification', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_B_Notification(**fields), span
+        return UciVendor_B_Notification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2334,7 +2334,7 @@ class UciVendor_E_Notification(UciNotification):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_E_Notification', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_E_Notification(**fields), span
+        return UciVendor_E_Notification(**fields), payload
 
     def serialize(self) -> bytes:
         pass
@@ -2347,7 +2347,7 @@ class UciVendor_F_Notification(UciNotification):
     def parse(fields: dict, span: bytes) -> Tuple['UciVendor_F_Notification', bytes]:
         payload = span
         fields['payload'] = payload
-        return UciVendor_F_Notification(**fields), span
+        return UciVendor_F_Notification(**fields), payload
 
     def serialize(self) -> bytes:
         pass

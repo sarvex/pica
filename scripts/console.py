@@ -50,7 +50,7 @@ def encode_mac_address(mac_address: str) -> bytes:
 
 
 def encode_tlv(typ: int, value: bytes):
-    return bytes([typ, len(value)]) + value if len(value) > 0 else bytes([])
+    return bytes([typ, len(value)]) + value if value else bytes([])
 
 
 class TLV:
@@ -59,7 +59,7 @@ class TLV:
         self.buffer = bytes()
 
     def append(self, tag: int, value: bytes):
-        if len(value) > 0:
+        if value:
             self.count += 1
             self.buffer += encode_tlv(tag, value)
 
@@ -362,25 +362,26 @@ async def command_line(device: Device):
 
         # Writing a command name, complete to ' '
         if len(tokens) == 1:
-            results = [cmd + ' ' for cmd in commands.keys() if
-                       cmd.startswith(text)]
+            results = [f'{cmd} ' for cmd in commands if cmd.startswith(text)]
 
-        # Writing a keyword argument, no completion
         elif '=' in tokens[-1]:
             results = []
 
-        # Writing a keyword name, but unknown command, no completion
         elif tokens[0] not in commands:
             results = []
 
-        # Writing a keyword name, complete to '='
         else:
             sig = inspect.signature(commands[tokens[0]])
-            names = [name for (name, p) in sig.parameters.items()
-                     if (p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD or
-                         p.kind == inspect.Parameter.KEYWORD_ONLY)]
-            results = [
-                name + '=' for name in names if name.startswith(tokens[-1])]
+            names = [
+                name
+                for (name, p) in sig.parameters.items()
+                if p.kind
+                in [
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    inspect.Parameter.KEYWORD_ONLY,
+                ]
+            ]
+            results = [f'{name}=' for name in names if name.startswith(tokens[-1])]
 
         results += [None]
         return results[state]
@@ -393,7 +394,7 @@ async def command_line(device: Device):
         cmd = await ainput('--> ')
         [cmd, *params] = cmd.split(' ')
         args = []
-        kargs = dict()
+        kargs = {}
         for param in params:
             if len(param) == 0:
                 continue
